@@ -1,6 +1,9 @@
 {
   "name": "@cyansalt/vite-plugin-vue2",
   "version": "2.3.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "author": "CyanSalt",
   "files": [
