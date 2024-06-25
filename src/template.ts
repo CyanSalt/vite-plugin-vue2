@@ -129,6 +129,7 @@ function resolveTemplateCompilerOptions(
     filename,
     isProduction: options.isProduction,
     isFunctional: Boolean(block.attrs.functional),
+    isTS: descriptor.scriptSetup?.lang === 'ts' || descriptor.script?.lang === 'ts',
     optimizeSSR: ssr,
     transformAssetUrlsOptions: {
       ...assetUrlOptions,
