@@ -121,4 +121,4 @@ export default {
 
 ## License
 
-MIT
+ISC

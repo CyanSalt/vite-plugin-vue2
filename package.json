@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "license": "MIT",
+  "license": "ISC",
   "author": "CyanSalt",
   "files": [
     "dist"
