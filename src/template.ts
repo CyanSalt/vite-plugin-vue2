@@ -1,27 +1,26 @@
-// @ts-ignore
+import path from 'node:path'
 import hash from 'hash-sum'
-import type { SFCDescriptor, SFCTemplateCompileOptions } from 'vue/compiler-sfc'
 import type { PluginContext, TransformPluginContext } from 'rollup'
+import slash from 'slash'
+import type { SFCDescriptor, SFCTemplateCompileOptions } from 'vue/compiler-sfc'
 import { getResolvedScript } from './script'
 import { createRollupError } from './utils/error'
+import { HMR_RUNTIME_ID } from './utils/hmr-runtime'
 import type { ResolvedOptions } from '.'
-import path from 'node:path'
-import slash from 'slash'
-import { HMR_RUNTIME_ID } from './utils/hmrRuntime'
 
 export async function transformTemplateAsModule(
   code: string,
   descriptor: SFCDescriptor,
   options: ResolvedOptions,
   pluginContext: TransformPluginContext,
-  ssr: boolean
+  ssr: boolean,
 ): Promise<string> {
   let returnCode = compile(code, descriptor, options, pluginContext, ssr)
   if (
-    options.devServer &&
-    options.devServer.config.server.hmr !== false &&
-    !ssr &&
-    !options.isProduction
+    options.devServer
+    && options.devServer.config.server.hmr !== false
+    && !ssr
+    && !options.isProduction
   ) {
     returnCode += `\nimport __VUE_HMR_RUNTIME__ from "${HMR_RUNTIME_ID}"`
     returnCode += `\nimport.meta.hot.accept((updated) => {
@@ -40,7 +39,7 @@ export function transformTemplateInMain(
   descriptor: SFCDescriptor,
   options: ResolvedOptions,
   pluginContext: PluginContext,
-  ssr: boolean
+  ssr: boolean,
 ): string {
   return compile(code, descriptor, options, pluginContext, ssr)
     .replace(/var (render|staticRenderFns) =/g, 'var _sfc_$1 =')
@@ -52,12 +51,12 @@ export function compile(
   descriptor: SFCDescriptor,
   options: ResolvedOptions,
   pluginContext: PluginContext,
-  ssr: boolean
+  ssr: boolean,
 ): string {
   const filename = descriptor.filename
   const result = options.compiler.compileTemplate({
     ...resolveTemplateCompilerOptions(descriptor, options, ssr)!,
-    source: code
+    source: code,
   })
 
   if (result.errors.length) {
@@ -65,18 +64,17 @@ export function compile(
       pluginContext.error(
         typeof error === 'string'
           ? { id: filename, message: error }
-          : createRollupError(filename, error)
-      )
-    )
+          : createRollupError(filename, error),
+      ))
   }
 
   if (result.tips.length) {
-    result.tips.forEach((tip) =>
+    result.tips.forEach((tip) => {
       pluginContext.warn({
         id: filename,
-        message: typeof tip === 'string' ? tip : tip.msg
+        message: typeof tip === 'string' ? tip : tip.msg,
       })
-    )
+    })
   }
 
   return transformRequireToImport(result.code)
@@ -85,7 +83,7 @@ export function compile(
 function resolveTemplateCompilerOptions(
   descriptor: SFCDescriptor,
   options: ResolvedOptions,
-  ssr: boolean
+  ssr: boolean,
 ): Omit<SFCTemplateCompileOptions, 'source'> | undefined {
   const block = descriptor.template
   if (!block) {
@@ -99,7 +97,7 @@ function resolveTemplateCompilerOptions(
   if (block.lang === 'pug') {
     preprocessOptions = {
       doctype: 'html',
-      ...preprocessOptions
+      ...preprocessOptions,
     }
   }
 
@@ -112,16 +110,16 @@ function resolveTemplateCompilerOptions(
     if (filename.startsWith(options.root)) {
       assetUrlOptions = {
         base:
-          (options.devServer.config.server?.origin ?? '') +
-          options.devServer.config.base +
-          slash(path.relative(options.root, path.dirname(filename)))
+          (options.devServer.config.server.origin ?? '')
+          + options.devServer.config.base
+          + slash(path.relative(options.root, path.dirname(filename))),
       }
     }
   } else if (transformAssetUrls !== false) {
     // build: force all asset urls into import requests so that they go through
     // the assets plugin for asset registration
     assetUrlOptions = {
-      includeAbsolute: true
+      includeAbsolute: true,
     }
   }
 
@@ -130,11 +128,11 @@ function resolveTemplateCompilerOptions(
     ...options.template,
     filename,
     isProduction: options.isProduction,
-    isFunctional: !!block.attrs.functional,
+    isFunctional: Boolean(block.attrs.functional),
     optimizeSSR: ssr,
     transformAssetUrlsOptions: {
       ...assetUrlOptions,
-      ...options.template?.transformAssetUrlsOptions
+      ...options.template?.transformAssetUrlsOptions,
     },
     preprocessLang: block.lang,
     preprocessOptions,
@@ -144,8 +142,8 @@ function resolveTemplateCompilerOptions(
       whitespace: 'condense',
       outputSourceRange: true,
       ...options.template?.compilerOptions,
-      scopeId: hasScoped ? `data-v-${id}` : undefined
-    }
+      scopeId: hasScoped ? `data-v-${id}` : undefined,
+    },
   }
 }
 
@@ -163,7 +161,7 @@ function transformRequireToImport(code: string): string {
       }
 
       return imports[name]
-    }
+    },
   )
 
   return strImports + code

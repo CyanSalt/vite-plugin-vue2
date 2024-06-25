@@ -1,11 +1,11 @@
-import type { SFCBlock, SFCDescriptor } from 'vue/compiler-sfc'
 import type { HmrContext, ModuleNode } from 'vite'
+import type { SFCBlock, SFCDescriptor } from 'vue/compiler-sfc'
+import { getResolvedScript, setResolvedScript } from './script'
 import {
   createDescriptor,
   getDescriptor,
-  setPrevDescriptor
-} from './utils/descriptorCache'
-import { getResolvedScript, setResolvedScript } from './script'
+  setPrevDescriptor,
+} from './utils/descriptor-cache'
 import type { ResolvedOptions } from '.'
 
 const directRequestRE = /(\?|&)direct\b/
@@ -15,7 +15,7 @@ const directRequestRE = /(\?|&)direct\b/
  */
 export async function handleHotUpdate(
   { file, modules, read, server }: HmrContext,
-  options: ResolvedOptions
+  options: ResolvedOptions,
 ): Promise<ModuleNode[] | void> {
   const prevDescriptor = getDescriptor(file, options, false)
   if (!prevDescriptor) {
@@ -31,25 +31,25 @@ export async function handleHotUpdate(
   let needRerender = false
   const affectedModules = new Set<ModuleNode | undefined>()
   const mainModule = modules.find(
-    (m) => !/type=/.test(m.url) || /type=script/.test(m.url)
+    (m) => !m.url.includes('type=') || m.url.includes('type=script'),
   )
-  const templateModule = modules.find((m) => /type=template/.test(m.url))
+  const templateModule = modules.find((m) => m.url.includes('type=template'))
 
   const scriptChanged = hasScriptChanged(prevDescriptor, descriptor)
   if (scriptChanged) {
     let scriptModule: ModuleNode | undefined
     if (
-      (descriptor.scriptSetup?.lang && !descriptor.scriptSetup.src) ||
-      (descriptor.script?.lang && !descriptor.script.src)
+      (descriptor.scriptSetup?.lang && !descriptor.scriptSetup.src)
+      || (descriptor.script?.lang && !descriptor.script.src)
     ) {
       const scriptModuleRE = new RegExp(
-        `type=script.*&lang\.${
-          descriptor.scriptSetup?.lang || descriptor.script?.lang
-        }$`
+        `type=script.*&lang.${
+          descriptor.scriptSetup!.lang || descriptor.script!.lang
+        }$`,
       )
       scriptModule = modules.find((m) => scriptModuleRE.test(m.url))
     }
-    affectedModules.add(scriptModule || mainModule)
+    affectedModules.add(scriptModule ?? mainModule)
   }
 
   if (!isEqualBlock(descriptor.template, prevDescriptor.template)) {
@@ -61,15 +61,16 @@ export async function handleHotUpdate(
       setResolvedScript(
         descriptor,
         getResolvedScript(prevDescriptor, false)!,
-        false
+        false,
       )
     }
     affectedModules.add(templateModule)
     needRerender = true
   }
 
-  let didUpdateStyle = false
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const prevStyles = prevDescriptor.styles || []
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const nextStyles = descriptor.styles || []
 
   // force reload if CSS vars injection changed
@@ -89,13 +90,13 @@ export async function handleHotUpdate(
   for (let i = 0; i < nextStyles.length; i++) {
     const prev = prevStyles[i]
     const next = nextStyles[i]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!prev || !isEqualBlock(prev, next)) {
-      didUpdateStyle = true
       const mod = modules.find(
         (m) =>
-          m.url.includes(`type=style&index=${i}`) &&
-          m.url.endsWith(`.${next.lang || 'css'}`) &&
-          !directRequestRE.test(m.url)
+          m.url.includes(`type=style&index=${i}`)
+          && m.url.endsWith(`.${next.lang || 'css'}`)
+          && !directRequestRE.test(m.url),
       )
       if (mod) {
         affectedModules.add(mod)
@@ -113,7 +114,9 @@ export async function handleHotUpdate(
     affectedModules.add(mainModule)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const prevCustoms = prevDescriptor.customBlocks || []
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const nextCustoms = descriptor.customBlocks || []
 
   // custom blocks update causes a reload
@@ -125,10 +128,10 @@ export async function handleHotUpdate(
     for (let i = 0; i < nextCustoms.length; i++) {
       const prev = prevCustoms[i]
       const next = nextCustoms[i]
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!prev || !isEqualBlock(prev, next)) {
         const mod = modules.find((m) =>
-          m.url.includes(`type=${prev.type}&index=${i}`)
-        )
+          m.url.includes(`type=${prev.type}&index=${i}`))
         if (mod) {
           affectedModules.add(mod)
         } else {
@@ -138,21 +141,15 @@ export async function handleHotUpdate(
     }
   }
 
-  const updateType = []
   if (needRerender) {
-    updateType.push(`template`)
     // template is inlined into main, add main module instead
     if (!templateModule) {
       affectedModules.add(mainModule)
     } else if (mainModule && !affectedModules.has(mainModule)) {
       const styleImporters = [...mainModule.importers].filter((m) =>
-        /\.css($|\?)/.test(m.url)
-      )
+        /\.css($|\?)/.test(m.url))
       styleImporters.forEach((m) => affectedModules.add(m))
     }
-  }
-  if (didUpdateStyle) {
-    updateType.push(`style`)
   }
   return [...affectedModules].filter(Boolean) as ModuleNode[]
 }
@@ -173,14 +170,14 @@ export function isEqualBlock(a: SFCBlock | null, b: SFCBlock | null): boolean {
 
 export function isOnlyTemplateChanged(
   prev: SFCDescriptor,
-  next: SFCDescriptor
+  next: SFCDescriptor,
 ): boolean {
   return (
-    !hasScriptChanged(prev, next) &&
-    prev.styles.length === next.styles.length &&
-    prev.styles.every((s, i) => isEqualBlock(s, next.styles[i])) &&
-    prev.customBlocks.length === next.customBlocks.length &&
-    prev.customBlocks.every((s, i) => isEqualBlock(s, next.customBlocks[i]))
+    !hasScriptChanged(prev, next)
+    && prev.styles.length === next.styles.length
+    && prev.styles.every((s, i) => isEqualBlock(s, next.styles[i]))
+    && prev.customBlocks.length === next.customBlocks.length
+    && prev.customBlocks.every((s, i) => isEqualBlock(s, next.customBlocks[i]))
   )
 }
 

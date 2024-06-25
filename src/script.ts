@@ -7,7 +7,7 @@ const ssrCache = new WeakMap<SFCDescriptor, SFCScriptBlock | null>()
 
 export function getResolvedScript(
   descriptor: SFCDescriptor,
-  ssr: boolean
+  ssr: boolean,
 ): SFCScriptBlock | null | undefined {
   return (ssr ? ssrCache : clientCache).get(descriptor)
 }
@@ -15,15 +15,15 @@ export function getResolvedScript(
 export function setResolvedScript(
   descriptor: SFCDescriptor,
   script: SFCScriptBlock,
-  ssr: boolean
+  ssr: boolean,
 ): void {
-  ;(ssr ? ssrCache : clientCache).set(descriptor, script)
+  (ssr ? ssrCache : clientCache).set(descriptor, script)
 }
 
 export function resolveScript(
   descriptor: SFCDescriptor,
   options: ResolvedOptions,
-  ssr: boolean
+  ssr: boolean,
 ): SFCScriptBlock | null {
   if (!descriptor.script && !descriptor.scriptSetup) {
     return null
@@ -39,7 +39,7 @@ export function resolveScript(
     ...options.script,
     id: descriptor.id,
     isProd: options.isProduction,
-    sourceMap: options.sourceMap
+    sourceMap: options.sourceMap,
   })
 
   cacheToUse.set(descriptor, resolved)

@@ -1,14 +1,14 @@
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import { createHash } from 'node:crypto'
 import slash from 'slash'
 import type { SFCDescriptor } from 'vue/compiler-sfc'
 import type { ResolvedOptions, VueQuery } from '..'
 
 // compiler-sfc should be exported so it can be re-used
 export interface SFCParseResult {
-  descriptor: SFCDescriptor
-  errors: Error[]
+  descriptor: SFCDescriptor,
+  errors: Error[],
 }
 
 const cache = new Map<string, SFCDescriptor>()
@@ -17,7 +17,7 @@ const prevCache = new Map<string, SFCDescriptor | undefined>()
 export function createDescriptor(
   filename: string,
   source: string,
-  { root, isProduction, sourceMap, compiler }: ResolvedOptions
+  { root, isProduction, sourceMap, compiler }: ResolvedOptions,
 ): SFCParseResult {
   let descriptor: SFCDescriptor
   let errors: any[] = []
@@ -25,7 +25,7 @@ export function createDescriptor(
     descriptor = compiler.parse({
       source,
       filename,
-      sourceMap
+      sourceMap,
     })
   } catch (e) {
     errors = [e]
@@ -47,7 +47,7 @@ export function getPrevDescriptor(filename: string): SFCDescriptor | undefined {
 
 export function setPrevDescriptor(
   filename: string,
-  entry: SFCDescriptor
+  entry: SFCDescriptor,
 ): void {
   prevCache.set(filename, entry)
 }
@@ -55,7 +55,7 @@ export function setPrevDescriptor(
 export function getDescriptor(
   filename: string,
   options: ResolvedOptions,
-  createIfNotFound = true
+  createIfNotFound = true,
 ): SFCDescriptor | undefined {
   if (cache.has(filename)) {
     return cache.get(filename)!
@@ -64,7 +64,7 @@ export function getDescriptor(
     const { descriptor, errors } = createDescriptor(
       filename,
       fs.readFileSync(filename, 'utf-8'),
-      options
+      options,
     )
     if (errors.length) {
       throw errors[0]
@@ -75,7 +75,7 @@ export function getDescriptor(
 
 export function getSrcDescriptor(
   filename: string,
-  query: VueQuery
+  query: VueQuery,
 ): SFCDescriptor {
   if (query.scoped) {
     return cache.get(`${filename}?src=${query.src}`)!
@@ -86,7 +86,7 @@ export function getSrcDescriptor(
 export function setSrcDescriptor(
   filename: string,
   entry: SFCDescriptor,
-  scoped?: boolean
+  scoped?: boolean,
 ): void {
   if (scoped) {
     // if multiple Vue files use the same src file, they will be overwritten
@@ -98,5 +98,5 @@ export function setSrcDescriptor(
 }
 
 function getHash(text: string): string {
-  return createHash('sha256').update(text).digest('hex').substring(0, 8)
+  return createHash('sha256').update(text).digest('hex').slice(0, 8)
 }

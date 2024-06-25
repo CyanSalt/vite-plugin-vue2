@@ -4,12 +4,12 @@ import vue from '../src/index'
 const config = defineConfig({
   resolve: {
     alias: {
-      '@': __dirname
-    }
+      '@': __dirname,
+    },
   },
   build: {
     sourcemap: true,
-    minify: false
+    minify: false,
   },
   plugins: [
     vue(),
@@ -28,12 +28,12 @@ const config = defineConfig({
               }
               Object.assign(Comp.__customBlock, __customBlock);
             }`,
-            map: null
+            map: null,
           }
         }
-      }
-    }
-  ]
+      },
+    },
+  ],
 })
 
 export default config

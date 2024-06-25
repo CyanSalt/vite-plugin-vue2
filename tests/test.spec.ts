@@ -1,5 +1,5 @@
 import type puppeteer from 'puppeteer'
-import { beforeAll, afterAll, describe, test, expect } from 'vitest'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import {
   expectByPolling,
   getComputedColor,
@@ -9,8 +9,8 @@ import {
   postTest,
   preTest,
   startServer,
-  updateFile
-} from './util'
+  updateFile,
+} from './utils'
 
 beforeAll(async () => {
   await preTest()
@@ -54,9 +54,8 @@ export function declareTests(isBuild: boolean) {
     if (!isBuild) {
       // hmr
       await updateFile('ScriptSetup.vue', content =>
-        content.replace(`{{ count }}`, `{{ count }}!`)
-      )
-      await expectByPolling(() => getText(button!), '1!')
+        content.replace(`{{ count }}`, `{{ count }}!`))
+      await expectByPolling(() => getText(button), '1!')
     }
   })
 
@@ -67,8 +66,7 @@ export function declareTests(isBuild: boolean) {
       expect(await getText(button!)).toMatch('>>> 1 <<<')
 
       await updateFile('hmr/TestHmr.vue', content =>
-        content.replace('{{ count }}', 'count is {{ count }}')
-      )
+        content.replace('{{ count }}', 'count is {{ count }}'))
       // note: using the same button to ensure the component did only re-render
       // if it's a reload, it would have replaced the button with a new one.
       await expectByPolling(() => getText(button!), 'count is 1')
@@ -76,8 +74,7 @@ export function declareTests(isBuild: boolean) {
 
     test('hmr (vue reload)', async () => {
       await updateFile('hmr/TestHmr.vue', content =>
-        content.replace('count: 0', 'count: 1337')
-      )
+        content.replace('count: 0', 'count: 1337'))
       await expectByPolling(() => getText('.hmr-increment'), 'count is 1337')
     })
   }
@@ -87,8 +84,7 @@ export function declareTests(isBuild: boolean) {
     expect(await getComputedColor(el!)).toBe('rgb(138, 43, 226)')
     if (!isBuild) {
       await updateFile('css/TestScopedCss.vue', content =>
-        content.replace('rgb(138, 43, 226)', 'rgb(0, 0, 0)')
-      )
+        content.replace('rgb(138, 43, 226)', 'rgb(0, 0, 0)'))
       await expectByPolling(() => getComputedColor(el!), 'rgb(0, 0, 0)')
     }
   })
@@ -98,12 +94,11 @@ export function declareTests(isBuild: boolean) {
     expect(await getComputedColor(el!)).toBe('rgb(0, 0, 255)')
     if (!isBuild) {
       await updateFile('css/TestCssModules.vue', content =>
-        content.replace('color: blue;', 'color: rgb(0, 0, 0);')
-      )
+        content.replace('color: blue;', 'color: rgb(0, 0, 0);'))
       // css module results in component reload so must use fresh selector
       await expectByPolling(
         () => getComputedColor('.css-modules-sfc'),
-        'rgb(0, 0, 0)'
+        'rgb(0, 0, 0)',
       )
     }
   })
@@ -121,8 +116,7 @@ export function declareTests(isBuild: boolean) {
     if (!isBuild) {
       // test style first, should not reload the component
       await updateFile('src-import/style.css', c =>
-        c.replace('rgb(119, 136, 153)', 'rgb(0, 0, 0)')
-      )
+        c.replace('rgb(119, 136, 153)', 'rgb(0, 0, 0)'))
       await expectByPolling(() => getComputedColor(el!), 'rgb(0, 0, 0)')
       // script
       await updateFile('src-import/script.ts', c => c.replace('hello', 'bye'))

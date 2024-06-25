@@ -1,13 +1,14 @@
-import path from 'path'
+import path from 'node:path'
+import type { ExecaChildProcess } from 'execa'
+import { execa } from 'execa'
 import fs from 'fs-extra'
-import execa from 'execa'
-import { expect } from 'vitest'
-import type { ElementHandle } from 'puppeteer'
+import type { Browser, ElementHandle, Page } from 'puppeteer'
 import puppeteer from 'puppeteer'
+import { expect } from 'vitest'
 
-let devServer: any
-let browser: puppeteer.Browser
-let page: puppeteer.Page
+let devServer: ExecaChildProcess | undefined
+let browser: Browser | undefined
+let page: Page
 let binPath: string
 const fixtureDir = path.join(__dirname, '../playground')
 const tempDir = path.join(__dirname, '../temp')
@@ -15,7 +16,9 @@ const tempDir = path.join(__dirname, '../temp')
 export async function preTest() {
   try {
     await fs.remove(tempDir)
-  } catch (e) {}
+  } catch {
+    // ignore
+  }
   await fs.copy(fixtureDir, tempDir)
   binPath = path.resolve(tempDir, '../node_modules/vite/bin/vite.js')
 
@@ -25,7 +28,10 @@ export async function preTest() {
 async function build() {
   console.log('building...')
   const buildOutput = await execa(binPath, ['build'], {
-    cwd: tempDir
+    cwd: tempDir,
+    env: {
+      VITE_CJS_IGNORE_WARNING: 'true',
+    },
   })
   expect(buildOutput.stderr).toBe('')
   console.log('build complete. running build tests...')
@@ -34,24 +40,26 @@ async function build() {
 export async function postTest() {
   try {
     await fs.remove(tempDir)
-  } catch (e) {}
+  } catch {
+    // ignore
+  }
 }
 
 export async function startServer(isBuild: boolean) {
   // start dev server
   devServer = execa(binPath, {
-    cwd: isBuild ? path.join(tempDir, '/dist') : tempDir
+    cwd: isBuild ? path.join(tempDir, '/dist') : tempDir,
   })
 
   browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
     // Enable if puppeteer can't detect chrome's path on MacOS
     // executablePath:
     // '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   })
 
   await new Promise(resolve => {
-    devServer.stdout.on('data', (data: Buffer) => {
+    devServer!.stdout!.on('data', (data: Buffer) => {
       if (data.toString().match('ready in')) {
         console.log('dev server running.')
         resolve('')
@@ -66,10 +74,12 @@ export async function startServer(isBuild: boolean) {
 }
 
 export async function killServer() {
-  if (browser) await browser.close()
+  if (browser) {
+    await browser.close()
+  }
   if (devServer) {
     devServer.kill('SIGTERM', {
-      forceKillAfterTimeout: 2000
+      forceKillAfterTimeout: 2000,
     })
   }
 }
@@ -81,8 +91,8 @@ export async function getEl(selectorOrEl: string | ElementHandle) {
 }
 
 export async function getText(selectorOrEl: string | ElementHandle) {
-  const el = await getEl(selectorOrEl)
-  return el ? el.evaluate(el => el.textContent) : null
+  const handle = await getEl(selectorOrEl)
+  return handle ? handle.evaluate(el => el.textContent) : null
 }
 
 export async function getComputedColor(selectorOrEl: string | ElementHandle) {
@@ -94,7 +104,7 @@ export const timeout = (n: number) =>
 
 export async function updateFile(
   file: string,
-  replacer: (content: string) => string
+  replacer: (content: string) => string,
 ) {
   const compPath = path.join(tempDir, file)
   const content = await fs.readFile(compPath, 'utf-8')

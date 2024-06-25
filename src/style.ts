@@ -1,16 +1,17 @@
-import type { SFCDescriptor } from 'vue/compiler-sfc'
 import type { ExistingRawSourceMap, TransformPluginContext } from 'rollup'
 import type { RawSourceMap } from 'source-map'
 import { formatPostcssSourceMap } from 'vite'
+import type { SFCDescriptor } from 'vue/compiler-sfc'
 import type { ResolvedOptions } from '.'
 
+// eslint-disable-next-line max-params
 export async function transformStyle(
   code: string,
   descriptor: SFCDescriptor,
   index: number,
   options: ResolvedOptions,
   pluginContext: TransformPluginContext,
-  filename: string
+  filename: string,
 ) {
   const block = descriptor.styles[index]
   // vite already handles pre-processors and CSS module so this is only
@@ -21,18 +22,18 @@ export async function transformStyle(
     id: `data-v-${descriptor.id}`,
     isProd: options.isProduction,
     source: code,
-    scoped: !!block.scoped,
+    scoped: Boolean(block.scoped),
     ...(options.cssDevSourcemap
       ? {
-          postcssOptions: {
-            map: {
-              from: filename,
-              inline: false,
-              annotation: false
-            }
-          }
-        }
-      : {})
+        postcssOptions: {
+          map: {
+            from: filename,
+            inline: false,
+            annotation: false,
+          },
+        },
+      }
+      : {}),
   })
 
   if (result.errors.length) {
@@ -41,7 +42,7 @@ export async function transformStyle(
         error.loc = {
           file: descriptor.filename,
           line: error.line + getLine(descriptor.source, block.start),
-          column: error.column
+          column: error.column,
         }
       }
       pluginContext.error(error)
@@ -51,16 +52,16 @@ export async function transformStyle(
 
   const map = result.map
     ? await formatPostcssSourceMap(
-        // version property of result.map is declared as string
-        // but actually it is a number
-        result.map as Omit<RawSourceMap, 'version'> as ExistingRawSourceMap,
-        filename
-      )
-    : ({ mappings: '' } as any)
+      // version property of result.map is declared as string
+      // but actually it is a number
+      result.map as Omit<RawSourceMap, 'version'> as ExistingRawSourceMap,
+      filename,
+    )
+    : ({ mappings: '' as const })
 
   return {
     code: result.code,
-    map: map
+    map,
   }
 }
 

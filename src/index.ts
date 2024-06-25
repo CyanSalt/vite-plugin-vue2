@@ -1,35 +1,38 @@
 import fs from 'node:fs'
-import { createFilter } from 'vite'
+import type { RawSourceMap } from 'source-map'
 import type { Plugin, ViteDevServer } from 'vite'
+import { createFilter } from 'vite'
+// eslint-disable-next-line import-x/no-duplicates
+import type * as compilerSFC from 'vue/compiler-sfc'
 import type {
   SFCBlock,
   SFCScriptCompileOptions,
   SFCStyleCompileOptions,
-  SFCTemplateCompileOptions
+  SFCTemplateCompileOptions,
+  // eslint-disable-next-line import-x/no-duplicates
 } from 'vue/compiler-sfc'
-import type * as _compiler from 'vue/compiler-sfc'
 import { resolveCompiler } from './compiler'
-import { parseVueRequest } from './utils/query'
-import { getDescriptor, getSrcDescriptor } from './utils/descriptorCache'
-import { getResolvedScript } from './script'
+import { handleHotUpdate } from './handle-hot-update'
 import { transformMain } from './main'
-import { handleHotUpdate } from './handleHotUpdate'
-import { transformTemplateAsModule } from './template'
+import { getResolvedScript } from './script'
 import { transformStyle } from './style'
-import { NORMALIZER_ID, normalizerCode } from './utils/componentNormalizer'
-import { HMR_RUNTIME_ID, hmrRuntimeCode } from './utils/hmrRuntime'
+import { transformTemplateAsModule } from './template'
+import { NORMALIZER_ID, normalizerCode } from './utils/component-normalizer'
+import { getDescriptor, getSrcDescriptor } from './utils/descriptor-cache'
+import { HMR_RUNTIME_ID, hmrRuntimeCode } from './utils/hmr-runtime'
+import { parseVueRequest } from './utils/query'
 
 export { parseVueRequest } from './utils/query'
 export type { VueQuery } from './utils/query'
 
 export interface Options {
-  include?: string | RegExp | (string | RegExp)[]
-  exclude?: string | RegExp | (string | RegExp)[]
+  include?: string | RegExp | (string | RegExp)[],
+  exclude?: string | RegExp | (string | RegExp)[],
 
-  isProduction?: boolean
+  isProduction?: boolean,
 
   // options to pass on to vue/compiler-sfc
-  script?: Partial<Pick<SFCScriptCompileOptions, 'babelParserPlugins'>>
+  script?: Partial<Pick<SFCScriptCompileOptions, 'babelParserPlugins'>>,
   template?: Partial<
     Pick<
       SFCTemplateCompileOptions,
@@ -40,27 +43,27 @@ export interface Options {
       | 'transformAssetUrls'
       | 'transformAssetUrlsOptions'
     >
-  >
-  style?: Partial<Pick<SFCStyleCompileOptions, 'trim'>>
+  >,
+  style?: Partial<Pick<SFCStyleCompileOptions, 'trim'>>,
 
   // customElement?: boolean | string | RegExp | (string | RegExp)[]
   // reactivityTransform?: boolean | string | RegExp | (string | RegExp)[]
-  compiler?: typeof _compiler
+  compiler?: typeof compilerSFC,
 }
 
 export interface ResolvedOptions extends Options {
-  compiler: typeof _compiler
-  root: string
-  sourceMap: boolean
-  cssDevSourcemap: boolean
-  devServer?: ViteDevServer
-  devToolsEnabled?: boolean
+  compiler: typeof compilerSFC,
+  root: string,
+  sourceMap: boolean,
+  cssDevSourcemap: boolean,
+  devServer?: ViteDevServer,
+  devToolsEnabled?: boolean,
 }
 
 export default function vuePlugin(rawOptions: Options = {}): Plugin {
   const {
     include = /\.vue$/,
-    exclude
+    exclude,
     // customElement = /\.ce\.vue$/,
     // reactivityTransform = false
   } = rawOptions
@@ -69,7 +72,7 @@ export default function vuePlugin(rawOptions: Options = {}): Plugin {
 
   let options: ResolvedOptions = {
     isProduction: process.env.NODE_ENV === 'production',
-    compiler: null as any, // to be set in buildStart
+    compiler: null as never, // to be set in buildStart
     ...rawOptions,
     include,
     exclude,
@@ -78,7 +81,7 @@ export default function vuePlugin(rawOptions: Options = {}): Plugin {
     root: process.cwd(),
     sourceMap: true,
     cssDevSourcemap: false,
-    devToolsEnabled: process.env.NODE_ENV !== 'production'
+    devToolsEnabled: process.env.NODE_ENV !== 'production',
   }
 
   return {
@@ -96,14 +99,14 @@ export default function vuePlugin(rawOptions: Options = {}): Plugin {
         ...options,
         root: config.root,
         isProduction: config.isProduction,
-        sourceMap: config.command === 'build' ? !!config.build.sourcemap : true,
-        cssDevSourcemap: config.css?.devSourcemap ?? false,
-        devToolsEnabled: !config.isProduction
+        sourceMap: config.command === 'build' ? Boolean(config.build.sourcemap) : true,
+        cssDevSourcemap: config.css.devSourcemap ?? false,
+        devToolsEnabled: !config.isProduction,
       }
       if (!config.resolve.alias.some(({ find }) => find === 'vue')) {
         config.resolve.alias.push({
           find: 'vue',
-          replacement: 'vue/dist/vue.runtime.esm.js'
+          replacement: 'vue/dist/vue.runtime.esm.js',
         })
       }
     },
@@ -113,6 +116,7 @@ export default function vuePlugin(rawOptions: Options = {}): Plugin {
     },
 
     buildStart() {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       options.compiler = options.compiler || resolveCompiler(options.root)
     },
 
@@ -151,13 +155,13 @@ export default function vuePlugin(rawOptions: Options = {}): Plugin {
           block = descriptor.template!
         } else if (query.type === 'style') {
           block = descriptor.styles[query.index!]
-        } else if (query.index != null) {
+        } else if (query.index !== undefined) {
           block = descriptor.customBlocks[query.index]
         }
         if (block) {
           return {
             code: block.content,
-            map: block.map as any
+            map: block.map as RawSourceMap | undefined,
           }
         }
       }
@@ -189,7 +193,7 @@ export default function vuePlugin(rawOptions: Options = {}): Plugin {
       } else {
         // sub block request
         const descriptor = query.src
-          ? getSrcDescriptor(filename, query)!
+          ? getSrcDescriptor(filename, query)
           : getDescriptor(filename, options)!
 
         if (query.type === 'template') {
@@ -199,11 +203,11 @@ export default function vuePlugin(rawOptions: Options = {}): Plugin {
               descriptor,
               options,
               this,
-              ssr
+              ssr,
             ),
             map: {
-              mappings: ''
-            }
+              mappings: '',
+            },
           }
         } else if (query.type === 'style') {
           return transformStyle(
@@ -212,10 +216,10 @@ export default function vuePlugin(rawOptions: Options = {}): Plugin {
             Number(query.index),
             options,
             this,
-            filename
+            filename,
           )
         }
       }
-    }
+    },
   }
 }
