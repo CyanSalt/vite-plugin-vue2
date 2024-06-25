@@ -1,3 +1,12 @@
+
+
+## [2.3.2](https://github.com/CyanSalt/vite-plugin-vue2/compare/v2.3.1...v2.3.2) (2024-06-25)
+
+
+### Bug Fixes
+
+* support typescript in template ([9f658a0](https://github.com/CyanSalt/vite-plugin-vue2/commit/9f658a0c4942f1ff82312080c4c98fff583e52c0))
+
 ## [2.3.1](https://github.com/vitejs/vite-plugin-vue2/compare/v2.3.0...v2.3.1) (2023-11-16)
 
 
