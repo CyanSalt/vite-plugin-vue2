@@ -1,6 +1,6 @@
 {
   "name": "@legacy-vue/vite-plugin-vue2",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "publishConfig": {
     "access": "public"
   },
