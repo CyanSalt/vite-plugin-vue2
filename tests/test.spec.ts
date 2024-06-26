@@ -1,4 +1,4 @@
-import type puppeteer from 'puppeteer'
+import type { Page } from 'puppeteer'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import {
   expectByPolling,
@@ -29,7 +29,7 @@ describe('vite-plugin-vue2', () => {
 })
 
 export function declareTests(isBuild: boolean) {
-  let page: puppeteer.Page = undefined!
+  let page: Page = undefined!
 
   beforeAll(async () => {
     page = await startServer(isBuild)

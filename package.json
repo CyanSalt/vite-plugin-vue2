@@ -1,5 +1,5 @@
 {
-  "name": "@cyansalt/vite-plugin-vue2",
+  "name": "@legacy-vue/vite-plugin-vue2",
   "version": "2.3.2",
   "publishConfig": {
     "access": "public"
