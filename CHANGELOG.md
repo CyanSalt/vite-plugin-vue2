@@ -1,5 +1,12 @@
 
 
+## [2.3.4](https://github.com/CyanSalt/vite-plugin-vue2/compare/v2.3.3...v2.3.4) (2024-07-04)
+
+
+### Bug Fixes
+
+* ignore syntax error detection when using TS ([678b69f](https://github.com/CyanSalt/vite-plugin-vue2/commit/678b69f23a52f436c84775a195dea4e2d873029a))
+
 ## [2.3.3](https://github.com/CyanSalt/vite-plugin-vue2/compare/v2.3.2...v2.3.3) (2024-06-26)
 
 ## [2.3.2](https://github.com/CyanSalt/vite-plugin-vue2/compare/v2.3.1...v2.3.2) (2024-06-25)
