@@ -46,6 +46,8 @@ export function transformTemplateInMain(
     .replace(/(render._withStripped)/, '_sfc_$1')
 }
 
+const REGEXP_SYNTAX_ERROR = /^invalid (expression:|function parameter expression:|v-)/
+
 export function compile(
   code: string,
   descriptor: SFCDescriptor,
@@ -54,13 +56,17 @@ export function compile(
   ssr: boolean,
 ): string {
   const filename = descriptor.filename
-  const result = options.compiler.compileTemplate({
+  const templateCompilerOptions = {
     ...resolveTemplateCompilerOptions(descriptor, options, ssr)!,
     source: code,
-  })
+  }
+  const result = options.compiler.compileTemplate(templateCompilerOptions)
 
-  if (result.errors.length) {
-    result.errors.forEach((error) =>
+  const errors = templateCompilerOptions.isTS
+    ? result.errors.filter(error => !REGEXP_SYNTAX_ERROR.test(typeof error === 'string' ? error : error.msg))
+    : result.errors
+  if (errors.length) {
+    errors.forEach((error) =>
       pluginContext.error(
         typeof error === 'string'
           ? { id: filename, message: error }
