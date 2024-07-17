@@ -1,4 +1,4 @@
-import type { SFCDescriptor, SFCScriptBlock } from 'vue/compiler-sfc'
+import type { SFCDescriptor, SFCScriptBlock } from '@legacy-vue/compiler-sfc'
 import type { ResolvedOptions } from '.'
 
 // ssr and non ssr builds would output different script content

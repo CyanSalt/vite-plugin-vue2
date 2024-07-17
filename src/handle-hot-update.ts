@@ -1,5 +1,5 @@
+import type { SFCBlock, SFCDescriptor } from '@legacy-vue/compiler-sfc'
 import type { HmrContext, ModuleNode } from 'vite'
-import type { SFCBlock, SFCDescriptor } from 'vue/compiler-sfc'
 import { getResolvedScript, setResolvedScript } from './script'
 import {
   createDescriptor,

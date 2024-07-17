@@ -1,16 +1,17 @@
 import fs from 'node:fs'
-import type { RawSourceMap } from 'source-map'
-import type { Plugin, ViteDevServer } from 'vite'
-import { createFilter } from 'vite'
 // eslint-disable-next-line import-x/no-duplicates
-import type * as compilerSFC from 'vue/compiler-sfc'
+import type * as compilerSFC from '@legacy-vue/compiler-sfc'
 import type {
   SFCBlock,
   SFCScriptCompileOptions,
   SFCStyleCompileOptions,
   SFCTemplateCompileOptions,
   // eslint-disable-next-line import-x/no-duplicates
-} from 'vue/compiler-sfc'
+} from '@legacy-vue/compiler-sfc'
+import type { RawSourceMap } from 'source-map'
+import type { Plugin, ViteDevServer } from 'vite'
+import { createFilter } from 'vite'
+
 import { resolveCompiler } from './compiler'
 import { handleHotUpdate } from './handle-hot-update'
 import { transformMain } from './main'
@@ -116,7 +117,7 @@ export default function vuePlugin(rawOptions: Options = {}): Plugin {
     },
 
     buildStart() {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
       options.compiler = options.compiler || resolveCompiler(options.root)
     },
 

@@ -1,8 +1,8 @@
 import path from 'node:path'
+import type { SFCDescriptor, SFCTemplateCompileOptions } from '@legacy-vue/compiler-sfc'
 import hash from 'hash-sum'
 import type { PluginContext, TransformPluginContext } from 'rollup'
 import slash from 'slash'
-import type { SFCDescriptor, SFCTemplateCompileOptions } from 'vue/compiler-sfc'
 import { getResolvedScript } from './script'
 import { createRollupError } from './utils/error'
 import { HMR_RUNTIME_ID } from './utils/hmr-runtime'
@@ -46,8 +46,6 @@ export function transformTemplateInMain(
     .replace(/(render._withStripped)/, '_sfc_$1')
 }
 
-const REGEXP_SYNTAX_ERROR = /^invalid (expression:|function parameter expression:|v-)/
-
 export function compile(
   code: string,
   descriptor: SFCDescriptor,
@@ -56,17 +54,13 @@ export function compile(
   ssr: boolean,
 ): string {
   const filename = descriptor.filename
-  const templateCompilerOptions = {
+  const result = options.compiler.compileTemplate({
     ...resolveTemplateCompilerOptions(descriptor, options, ssr)!,
     source: code,
-  }
-  const result = options.compiler.compileTemplate(templateCompilerOptions)
+  })
 
-  const errors = templateCompilerOptions.isTS
-    ? result.errors.filter(error => !REGEXP_SYNTAX_ERROR.test(typeof error === 'string' ? error : error.msg))
-    : result.errors
-  if (errors.length) {
-    errors.forEach((error) =>
+  if (result.errors.length) {
+    result.errors.forEach((error) =>
       pluginContext.error(
         typeof error === 'string'
           ? { id: filename, message: error }

@@ -1,7 +1,7 @@
+import type { SFCDescriptor } from '@legacy-vue/compiler-sfc'
 import type { ExistingRawSourceMap, TransformPluginContext } from 'rollup'
 import type { RawSourceMap } from 'source-map'
 import { formatPostcssSourceMap } from 'vite'
-import type { SFCDescriptor } from 'vue/compiler-sfc'
 import type { ResolvedOptions } from '.'
 
 // eslint-disable-next-line max-params

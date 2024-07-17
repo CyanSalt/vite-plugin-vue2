@@ -1,5 +1,5 @@
+import type { WarningMessage } from '@legacy-vue/compiler-sfc'
 import type { RollupError } from 'rollup'
-import type { WarningMessage } from 'vue/compiler-sfc'
 
 export function createRollupError(
   id: string,

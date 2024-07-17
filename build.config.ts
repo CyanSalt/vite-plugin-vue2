@@ -2,7 +2,7 @@ import { defineBuildConfig } from 'unbuild'
 
 export default defineBuildConfig({
   entries: ['src/index'],
-  externals: ['vite', 'vue/compiler-sfc'],
+  externals: ['@legacy-vue/compiler-sfc', 'vite'],
   clean: true,
   declaration: true,
   rollup: {
