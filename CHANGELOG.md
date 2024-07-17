@@ -1,5 +1,12 @@
 
 
+## [2.3.5](https://github.com/CyanSalt/vite-plugin-vue2/compare/v2.3.4...v2.3.5) (2024-07-17)
+
+
+### Bug Fixes
+
+* use custom compiler ([535300c](https://github.com/CyanSalt/vite-plugin-vue2/commit/535300c68c803eaca6c9017edbcbffdaeda0a973))
+
 ## [2.3.4](https://github.com/CyanSalt/vite-plugin-vue2/compare/v2.3.3...v2.3.4) (2024-07-04)
 
 
