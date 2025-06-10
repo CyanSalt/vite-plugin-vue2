@@ -236,7 +236,7 @@ async function genScriptCode(
     // If the script is js/ts and has no external src, it can be directly placed
     // in the main module.
     if (
-      (!script.lang || (script.lang === 'ts' && options.devServer))
+      (!script.lang || script.lang === 'ts')
       && !script.src
     ) {
       const userPlugins = options.script?.babelParserPlugins ?? []
