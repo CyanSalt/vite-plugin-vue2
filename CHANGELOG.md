@@ -1,5 +1,12 @@
 
 
+## [2.3.6](https://github.com/CyanSalt/vite-plugin-vue2/compare/v2.3.5...v2.3.6) (2025-06-10)
+
+
+### Bug Fixes
+
+* source map with ts ([08aa23d](https://github.com/CyanSalt/vite-plugin-vue2/commit/08aa23d07aa95bcf114369f70a967b177b7129d7))
+
 ## [2.3.5](https://github.com/CyanSalt/vite-plugin-vue2/compare/v2.3.4...v2.3.5) (2024-07-17)
 
 
