@@ -8,5 +8,11 @@ export default defineBuildConfig({
   rollup: {
     emitCJS: true,
     inlineDependencies: true,
+    dts: {
+      tsconfig: './tsconfig.lib.json',
+      compilerOptions: {
+        composite: false,
+      },
+    },
   },
 })

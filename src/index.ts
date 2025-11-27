@@ -117,7 +117,7 @@ export default function vuePlugin(rawOptions: Options = {}): Plugin {
     },
 
     buildStart() {
-
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       options.compiler = options.compiler || resolveCompiler(options.root)
     },
 

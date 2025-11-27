@@ -1,30 +1,3 @@
-<script lang="ts">
-import Vue from 'vue'
-
-export default Vue.extend({
-  name: 'TestES2020Features',
-
-  data() {
-    return {
-      spreadArray: ['s', 'p', 'r', 'ead'],
-    }
-  },
-
-  computed: {
-    nullish() {
-      return {
-        a: {
-          d: undefined as unknown as undefined | { e: string },
-          b: {
-            c: '2',
-          },
-        },
-      }
-    },
-  },
-})
-</script>
-
 <template>
   <div>
     <h2>ES2020 Features</h2>
@@ -47,3 +20,31 @@ export default Vue.extend({
     </code>
   </div>
 </template>
+
+<script lang="ts">
+import Vue from 'vue'
+
+export default Vue.extend({
+  name: 'TestES2020Features',
+
+  data() {
+    return {
+      // eslint-disable-next-line vue/no-unused-properties
+      spreadArray: ['s', 'p', 'r', 'ead'],
+    }
+  },
+
+  computed: {
+    nullish() {
+      return {
+        a: {
+          d: undefined as unknown as undefined | { e: string },
+          b: {
+            c: '2',
+          },
+        },
+      }
+    },
+  },
+})
+</script>
